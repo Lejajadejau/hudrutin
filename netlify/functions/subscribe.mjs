@@ -1,4 +1,4 @@
-import { store, keyFor, json } from "./_lib.mjs";
+import { store, keyFor, json } from "../lib/shared.mjs";
 export default async req => {
   const { sub, settings } = await req.json();
   if (!sub || !sub.endpoint) return json({ error: "Prenumeration saknas" }, 400);

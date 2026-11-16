@@ -1,4 +1,4 @@
-import { store, push, stockholmNow, message } from "./_lib.mjs";
+import { store, push, stockholmNow, message } from "../lib/shared.mjs";
 const toMin = t => { const [h, m] = (t || "0:0").split(":").map(Number); return h * 60 + m; };
 export default async () => {
   const s = store(), now = stockholmNow();

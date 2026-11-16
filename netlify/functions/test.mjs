@@ -1,4 +1,4 @@
-import { push, json, stockholmNow } from "./_lib.mjs";
+import { push, json, stockholmNow } from "../lib/shared.mjs";
 export default async req => {
   const { sub } = await req.json();
   try {
