@@ -300,7 +300,7 @@ function steps(m, dateStr){
   const acid = isAcid(dateStr) && !(LOG[dateStr]||{}).acidSkip;
   const sat = parse(dateStr).getDay() === 6;
   const list = [
-    {t:"Tvätta", w:"Cetaphil Gentle Skin Cleanser", li:["Ljummet vatten, inte varmt.","En liten pump Cetaphil. Tvätta med fingrarna, inte med tvättlapp.","Skölj och klappa torrt med handduken. Gnugga inte."], note: sat ? "Lördag: sitter det lösa flagor kvar får du ta en mjuk, blöt tvättlapp med lätta drag. Aldrig på irriterad hud." : ""},
+    {t:"Tvätta", w:"CeraVe Hydrating Cleanser", li:["Ljummet vatten, inte varmt.","En liten pump CeraVe. Tvätta med fingrarna, inte med tvättlapp.","Skölj och klappa torrt med handduken. Gnugga inte."], note: sat ? "Lördag: sitter det lösa flagor kvar får du ta en mjuk, blöt tvättlapp med lätta drag. Aldrig på irriterad hud." : ""},
     {t:"Masken", w:"Shark CryoGlow", li:["Huden ska vara ren och torr.","Kör maskens program som vanligt.","Inga krämer före masken."]},
   ];
   if(acid) list.push({t:"Mjölksyra", w:"Ikväll är det syrakväll", li:["3–4 droppar på fingertopparna.","Panna, kinder och näsrygg.","Inte på hakan, runt munnen eller nära ögonen.","Låt torka en minut. Lite stickningar är normalt."], zones:true, alt:"Hoppa över syran ikväll"});
