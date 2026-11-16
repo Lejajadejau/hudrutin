@@ -7,8 +7,17 @@ export const store = () => getStore("subscriptions");
 export const keyFor = endpoint => createHash("sha256").update(endpoint).digest("hex");
 export const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { "content-type": "application/json" } });
 
-export function push(sub, payload) {
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT || "mailto:wellanjohan@gmail.com", process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
+/* Nycklarna skapas första gången och sparas på servern, aldrig i koden */
+export async function vapidKeys() {
+  const s = getStore("config");
+  let k = await s.get("vapid", { type: "json" });
+  if (!k) { k = webpush.generateVAPIDKeys(); await s.setJSON("vapid", k); }
+  return k;
+}
+
+export async function push(sub, payload) {
+  const k = await vapidKeys();
+  webpush.setVapidDetails("mailto:noreply@klas-hudrutin.netlify.app", k.publicKey, k.privateKey);
   return webpush.sendNotification(sub, JSON.stringify(payload), { TTL: 3600, urgency: "high" });
 }
 
