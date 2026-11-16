@@ -28,14 +28,14 @@
 html,body{height:100%}
 body{
   min-height:100dvh; color:var(--fg); -webkit-font-smoothing:antialiased;
-  background:linear-gradient(180deg,var(--sky) 0%,var(--mist) 70%);
+  background:var(--mist) linear-gradient(180deg,var(--sky) 0%,var(--mist) 70%) no-repeat;
   transition:background .6s, color .6s;
   padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
 }
 body.evening{
   --fg:var(--star); --fg2:var(--star2); --orb:var(--moon); --line:rgba(232,236,255,.16);
   --panel:rgba(255,255,255,.07); --btn:var(--moon); --btnfg:var(--night);
-  background:linear-gradient(180deg,var(--night) 0%,var(--dusk) 100%);
+  background:var(--dusk) linear-gradient(180deg,var(--night) 0%,var(--dusk) 100vh) no-repeat;
 }
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--lilac);outline-offset:3px;border-radius:12px}
@@ -224,7 +224,8 @@ input[type=time],input[type=date]{font:inherit;color:inherit;background:transpar
 
     <div class="group">
       <div class="field"><span>Påminnelser<small id="pushStatus">Av</small></span><button class="switch" id="pushSwitch" role="switch" aria-checked="false" aria-label="Påminnelser"></button></div>
-      <div class="field"><label for="tM">Morgon</label><input type="time" id="tM"></div>
+      <div class="field"><label for="tM">Morgon, skoldagar</label><input type="time" id="tM"></div>
+      <div class="field"><label for="tL">Morgon, helg och lov<small id="lovStatus"></small></label><input type="time" id="tL"></div>
       <div class="field"><label for="tE">Kväll</label><input type="time" id="tE"></div>
       <div class="field"><span>Testa en påminnelse</span><button class="small-btn" id="pushTest">Skicka nu</button></div>
     </div>
@@ -234,6 +235,7 @@ input[type=time],input[type=date]{font:inherit;color:inherit;background:transpar
       <div class="field"><label for="acidStart">Startade</label><input type="date" id="acidStart"></div>
       <div class="field"><span>Huden är irriterad<small>Pausar syran en vecka och börjar om med en kväll i veckan</small></span><button class="small-btn" id="acidPause">Pausa</button></div>
     </div>
+    <p class="help">Helg och lov följer Stockholms stads lovschema till och med jullovet 2027/28. Morgonnotisen kommer då på den senare tiden.</p>
     <p class="help">Upptrappning: vecka 1–2 söndagar, vecka 3–6 onsdagar och söndagar, därefter även fredagar. Syran går på panna, kinder och näsrygg, aldrig där Epiduo smörjs.</p>
   </section>
 </div>
@@ -242,11 +244,15 @@ input[type=time],input[type=date]{font:inherit;color:inherit;background:transpar
 <script>
 const $ = s => document.querySelector(s);
 const DAY = 864e5;
-const DEFAULTS = {morning:"07:00", evening:"21:30", acidStart:iso(new Date()), notify:false};
+const DEFAULTS = {morning:"07:00", morningLate:"11:00", evening:"21:30", acidStart:iso(new Date()), notify:false};
 let S = Object.assign({}, DEFAULTS, load("hr_settings", {}));
 let LOG = load("hr_log", {});
 let mode = new Date().getHours() < 14 ? "m" : "e";
 let run = null; // {mode, steps, i, timerEnd}
+let LOV = load("hr_lov", {ranges:[]});
+fetch("/lov.json").then(r=>r.json()).then(j=>{ LOV=j; try{localStorage.setItem("hr_lov",JSON.stringify(j))}catch{}; if($("#settingsView").classList.contains("on")) renderSettings() }).catch(()=>{});
+function lovName(k){ for(const [a,b,n] of LOV.ranges) if(k>=a && k<=b) return n; const d=parse(k).getDay(); return d===0||d===6 ? "Helg" : null }
+function nextLov(){ const t=iso(new Date()); const r=LOV.ranges.find(([a,b])=>b>=t); return r }
 
 function load(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d }catch{ return d } }
 function save(){ try{ localStorage.setItem("hr_settings", JSON.stringify(S)); localStorage.setItem("hr_log", JSON.stringify(LOG)); }catch{} }
@@ -413,16 +419,19 @@ $("#doneHome").onclick = () => { renderHome(); show("home") };
 
 /* ---------- Inställningar ---------- */
 function renderSettings(){
-  $("#tM").value = S.morning; $("#tE").value = S.evening; $("#acidStart").value = S.acidStart || "";
+  $("#tM").value = S.morning; $("#tL").value = S.morningLate; $("#tE").value = S.evening;
+  const nl = nextLov(), today = iso(new Date());
+  $("#lovStatus").textContent = nl ? (nl[0] <= today ? `${nl[2]} pågår` : `Nästa lov: ${nl[2].toLowerCase()} ${parse(nl[0]).toLocaleDateString("sv-SE",{day:"numeric",month:"long"})}`) : "Lovschemat behöver uppdateras"; $("#acidStart").value = S.acidStart || "";
   const w = acidWeek(iso(new Date()));
   $("#acidStatus").textContent = w < 0 ? "Börjar " + parse(S.acidStart).toLocaleDateString("sv-SE",{day:"numeric",month:"long"})
     : `Vecka ${w+1}: ` + (w<2 ? "söndagar" : w<6 ? "onsdagar och söndagar" : "onsdagar, fredagar och söndagar");
   $("#pushSwitch").setAttribute("aria-checked", !!S.notify);
-  $("#pushStatus").textContent = S.notify ? `På, ${S.morning} och ${S.evening}` : "Av";
+  $("#pushStatus").textContent = S.notify ? `På, ${S.morning} (${S.morningLate} helg och lov) och ${S.evening}` : "Av";
 }
 $("#openSettings").onclick = () => { renderSettings(); show("settingsView") };
 $("#settingsBack").onclick = () => { renderHome(); show("home") };
 $("#tM").onchange = e => { S.morning = e.target.value || DEFAULTS.morning; save(); renderSettings(); syncPush() };
+$("#tL").onchange = e => { S.morningLate = e.target.value || DEFAULTS.morningLate; save(); renderSettings(); syncPush() };
 $("#tE").onchange = e => { S.evening = e.target.value || DEFAULTS.evening; save(); renderSettings(); syncPush() };
 $("#acidStart").onchange = e => { S.acidStart = e.target.value || iso(new Date()); save(); renderSettings(); syncPush() };
 $("#acidPause").onclick = () => {
@@ -446,7 +455,7 @@ async function syncPush(){
   if(!S.notify) return;
   try{
     const sub = await getSub(false); if(!sub) return;
-    await fetch("/api/subscribe",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({sub, settings:{morning:S.morning, evening:S.evening, acidStart:S.acidStart}})});
+    await fetch("/api/subscribe",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({sub, settings:{morning:S.morning, morningLate:S.morningLate, evening:S.evening, acidStart:S.acidStart}})});
   }catch{}
 }
 $("#pushSwitch").onclick = async () => {
@@ -461,7 +470,7 @@ $("#pushSwitch").onclick = async () => {
     const perm = await Notification.requestPermission();
     if(perm !== "granted"){ toast("Notiser är blockerade. Tillåt dem under Inställningar, Notiser, Hudrutin."); return }
     await getSub(true); S.notify = true; save(); await syncPush(); renderSettings();
-    toast(`Påminnelser kl. ${S.morning} och ${S.evening}`);
+    toast(`Påminnelser kl. ${S.morning} (${S.morningLate} helg och lov) och ${S.evening}`);
   }catch(e){ toast("Påminnelser fungerar inte här. Öppna appen från hemskärmen.") }
 };
 $("#pushTest").onclick = async () => {

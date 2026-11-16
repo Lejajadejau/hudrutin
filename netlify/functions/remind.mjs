@@ -1,4 +1,4 @@
-import { store, push, stockholmNow, message } from "../lib/shared.mjs";
+import { store, push, stockholmNow, message, lovName } from "../lib/shared.mjs";
 const toMin = t => { const [h, m] = (t || "0:0").split(":").map(Number); return h * 60 + m; };
 export default async () => {
   const s = store(), now = stockholmNow();
@@ -8,7 +8,8 @@ export default async () => {
     if (!rec) continue;
     let changed = false;
     for (const slot of ["m", "e"]) {
-      const t = toMin(slot === "m" ? rec.settings.morning : rec.settings.evening);
+      const morning = lovName(now.date) ? (rec.settings.morningLate || "11:00") : rec.settings.morning;
+      const t = toMin(slot === "m" ? morning : rec.settings.evening);
       if (now.minutes >= t && now.minutes < t + 60 && rec.last[slot] !== now.date) {
         try {
           await push(rec.sub, message(slot, now.date, rec.settings.acidStart));

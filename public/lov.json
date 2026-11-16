@@ -1,0 +1,14 @@
+{
+  "source": "Stockholms stad, lärotider för kommunala skolor (grundskola 2026/27, gymnasium HT 2027)",
+  "validUntil": "2028-01-09",
+  "ranges": [
+    ["2026-10-26", "2026-10-30", "Höstlov"],
+    ["2026-12-19", "2027-01-10", "Jullov"],
+    ["2027-03-01", "2027-03-05", "Sportlov"],
+    ["2027-03-26", "2027-04-02", "Påsklov"],
+    ["2027-05-06", "2027-05-07", "Kristi himmelsfärd"],
+    ["2027-06-12", "2027-08-15", "Sommarlov"],
+    ["2027-11-01", "2027-11-05", "Höstlov"],
+    ["2027-12-22", "2028-01-09", "Jullov"]
+  ]
+}

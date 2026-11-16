@@ -2,6 +2,7 @@ import * as wp from "web-push";
 const webpush = wp.default ?? wp;
 import { getStore } from "@netlify/blobs";
 import { createHash } from "node:crypto";
+import LOV from "../../public/lov.json" with { type: "json" };
 
 export const store = () => getStore("subscriptions");
 export const keyFor = endpoint => createHash("sha256").update(endpoint).digest("hex");
@@ -39,8 +40,18 @@ export function stockholmNow() {
 }
 
 export function message(slot, date, acidStart) {
-  if (slot === "m") return { title: "God morgon", body: "Dags för morgonrutinen. Tryck när du är redo.", url: "/?start=m", tag: "morgon" };
+  if (slot === "m") return lovName(date)
+    ? { title: "God förmiddag", body: "Sovmorgon idag. Dags för morgonrutinen när du är uppe.", url: "/?start=m", tag: "morgon" }
+    : { title: "God morgon", body: "Dags för morgonrutinen. Tryck när du är redo.", url: "/?start=m", tag: "morgon" };
   return isAcid(date, acidStart)
     ? { title: "Dags för kvällsrutinen", body: "Ikväll är det mjölksyrakväll. Tryck när du är redo.", url: "/?start=e", tag: "kvall" }
     : { title: "Dags för kvällsrutinen", body: "Tvätta, masken, Epiduo, nattkräm. Tryck när du är redo.", url: "/?start=e", tag: "kvall" };
+}
+
+/* Helg eller lovdag enligt Stockholms stads lovschema */
+export function lovName(dateStr) {
+  for (const [a, b, n] of LOV.ranges) if (dateStr >= a && dateStr <= b) return n;
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return dow === 0 || dow === 6 ? "Helg" : null;
 }
