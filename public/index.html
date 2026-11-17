@@ -293,12 +293,9 @@ function steps(m, dateStr){
     const month = parse(dateStr).getMonth();
     const sunny = month >= 2 && month <= 9;
     const list = [
-      {t:"Dagkräm", w:"Eucerin UreaRepair Day, första lagret", li:["Ingen tvätt på morgonen, bara kräm.","En liten klick räcker. Hellre tunt.","Stryk ut i en riktning i stället för att massera runt.","Rör inte flagorna. Krämen mjukar upp dem."],
-        why:"Att tvätta både morgon och kväll torkar ut huden. Krämen binder fukt och gör flagorna mjukare så att de släpper av sig själva.",
-        note:"Kliar det? Tryck en kall, blöt handduk mot huden en stund. Tryck, gnugga inte."},
-      {t:"Vänta", w:"Låt första lagret sjunka in", timer:3, wait:"Klä på dig eller ät frukost under tiden."},
-      {t:"Andra lagret", w:"Samma kräm, lika tunt", li:["Ett nytt tunt lager över hela ansiktet.","Extra där det stramar eller flagnar."],
-        why:"Två tunna lager fäster bättre och klumpar sig mindre än ett tjockt. Huden håller sig mjuk längre under dagen."},
+      {t:"Dagkräm", w:"Eucerin UreaRepair Day", li:["Ingen tvätt på morgonen, bara kräm.","Ett tunt lager över hela ansiktet.","Stryk ut i en riktning i stället för att massera runt.","Rör inte flagorna. Krämen mjukar upp dem."],
+        why:"Huden behöver inte tvättas på morgonen, och tvätt två gånger om dagen torkar ut den. Krämen binder fukt och gör flagorna mjukare så att de släpper av sig själva.",
+        note:"Stramar det senare under dagen går det bra med ett till tunt lager."},
     ];
     if(sunny) list.push({t:"Solskydd", w:"Minst SPF 30", li:["Smörj ansiktet, öronen och nacken."], why:"Epiduo och mjölksyran gör huden känsligare för sol."});
     return list;
