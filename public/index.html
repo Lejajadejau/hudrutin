@@ -236,6 +236,7 @@ input[type=time],input[type=date]{font:inherit;color:inherit;background:transpar
       <div class="field"><span>Huden är irriterad<small>Pausar syran en vecka och börjar om med en kväll i veckan</small></span><button class="small-btn" id="acidPause">Pausa</button></div>
     </div>
     <p class="help">Helg och lov följer Stockholms stads lovschema till och med jullovet 2027/28. Morgonnotisen kommer då på den senare tiden.</p>
+    <p class="help">Tisdagar och lördagar mjukar du upp flagorna efter duschen, med kräm i tio minuter och en mjuk tvättlapp. Aldrig samma kväll som mjölksyran.</p>
     <p class="help">Upptrappning: vecka 1–2 söndagar, vecka 3–6 onsdagar och söndagar, därefter även fredagar. Syran går på panna, kinder och näsrygg, aldrig där Epiduo smörjs.</p>
   </section>
 </div>
@@ -286,28 +287,46 @@ const ZONES = `<div class="zones"><svg viewBox="0 0 120 150" aria-label="Var pro
 </svg></div>
 <p class="note" style="text-align:center"><span style="color:#A796FF">●</span> Mjölksyra &nbsp;&nbsp; <span style="color:#FFB547">●</span> Epiduo</p>`;
 
+function isSoften(dateStr){ const d=parse(dateStr).getDay(); return (d===2 || d===6) && !isAcid(dateStr) }
 function steps(m, dateStr){
   if(m === "m"){
     const month = parse(dateStr).getMonth();
     const sunny = month >= 2 && month <= 9;
     const list = [
-      {t:"Skölj", w:"Ljummet vatten", li:["Skölj ansiktet med ljummet vatten.","Känns huden fet? Ta lite CeraVe, annars räcker vatten.","Klappa nästan torrt. Gnugga inte."]},
-      {t:"Dagkräm", w:"Eucerin UreaRepair Day", li:["Smörj på lätt fuktig hud.","En liten klick räcker. Hellre tunt.","Stryk ut i en riktning i stället för att massera runt."]},
+      {t:"Dagkräm", w:"Eucerin UreaRepair Day, första lagret", li:["Ingen tvätt på morgonen, bara kräm.","En liten klick räcker. Hellre tunt.","Stryk ut i en riktning i stället för att massera runt.","Rör inte flagorna. Krämen mjukar upp dem."],
+        why:"Att tvätta både morgon och kväll torkar ut huden. Krämen binder fukt och gör flagorna mjukare så att de släpper av sig själva.",
+        note:"Kliar det? Tryck en kall, blöt handduk mot huden en stund. Tryck, gnugga inte."},
+      {t:"Vänta", w:"Låt första lagret sjunka in", timer:3, wait:"Klä på dig eller ät frukost under tiden."},
+      {t:"Andra lagret", w:"Samma kräm, lika tunt", li:["Ett nytt tunt lager över hela ansiktet.","Extra där det stramar eller flagnar."],
+        why:"Två tunna lager fäster bättre och klumpar sig mindre än ett tjockt. Huden håller sig mjuk längre under dagen."},
     ];
-    if(sunny) list.push({t:"Solskydd", w:"Minst SPF 30", li:["Epiduo gör huden känsligare för sol.","Smörj ansiktet, öronen och nacken."]});
+    if(sunny) list.push({t:"Solskydd", w:"Minst SPF 30", li:["Smörj ansiktet, öronen och nacken."], why:"Epiduo och mjölksyran gör huden känsligare för sol."});
     return list;
   }
   const acid = isAcid(dateStr) && !(LOG[dateStr]||{}).acidSkip;
-  const sat = parse(dateStr).getDay() === 6;
-  const list = [
-    {t:"Tvätta", w:"CeraVe Hydrating Cleanser", li:["Ljummet vatten, inte varmt.","En liten pump CeraVe. Tvätta med fingrarna, inte med tvättlapp.","Skölj och klappa torrt med handduken. Gnugga inte."], note: sat ? "Lördag: sitter det lösa flagor kvar får du ta en mjuk, blöt tvättlapp med lätta drag. Aldrig på irriterad hud." : ""},
-    {t:"Masken", w:"Shark CryoGlow", li:["Huden ska vara ren och torr.","Kör maskens program som vanligt.","Inga krämer före masken."]},
-  ];
-  if(acid) list.push({t:"Mjölksyra", w:"Ikväll är det syrakväll", li:["3–4 droppar på fingertopparna.","Panna, kinder och näsrygg.","Inte på hakan, runt munnen eller nära ögonen.","Låt torka en minut. Lite stickningar är normalt."], zones:true, alt:"Hoppa över syran ikväll"});
+  const soften = isSoften(dateStr);
+  const list = [];
+  if(soften) list.push(
+    {t:"Mjukgör flagorna", w:"Efter duschen, medan huden är varm", li:["Duscha först, ljummet vatten.","Lägg ett ordentligt lager nattkräm eller lite vaselin där det flagnar.","Gör inget mer på tio minuter."],
+      why:"Värmen och krämen mjukar upp de döda hudflagorna. Då släpper de av sig själva i nästa steg, utan att den friska huden under rivs upp."},
+    {t:"Låt det verka", w:"Krämen jobbar", timer:10},
+    {t:"Torka av", w:"Mjuk, blöt tvättlapp", li:["Ett par lätta drag över området.","Pressa inte och skrubba inte.","Det som sitter kvar får sitta kvar till nästa gång."],
+      why:"Uppmjukade flagor följer med lappen. Att gnugga bort hud som inte har släppt skadar hudens skydd, och då flagnar och kliar det ännu mer."}
+  );
   list.push(
-    {t:"Epiduo", w:"Adapalen och bensoylperoxid", li:["Huden ska vara helt torr.","En ärtstor klick räcker.","Tunt lager på hakan, runt munnen och där det finns finnar.","Undvik mungiporna och näsvingarna."], note:"Epiduo bleker tyg. Vita örngott och handdukar är bäst.", zones:acid},
-    {t:"Vänta", w:"Låt Epiduo sjunka in", timer:10},
-    {t:"Nattkräm", w:"Eucerin UreaRepair Night", li:["Tunt lager över hela ansiktet.","Stryk ut i en riktning, låt bli att gnugga.","Klumpar det sig? Ta mindre kräm nästa gång."]}
+    {t:"Tvätta", w:"CeraVe Hydrating Cleanser", li:["Ljummet vatten, inte varmt.","En liten pump CeraVe. Tvätta med fingrarna, inte med tvättlapp.","Skölj och klappa torrt med handduken. Gnugga inte."],
+      why:"Tar bort smuts och fett utan att torka ut huden. Varmt vatten och gnuggande tar bort hudens eget fett."},
+    {t:"Masken", w:"Shark CryoGlow", li:["Huden ska vara ren och torr.","Kör programmet med rött och blått ljus.","Inga krämer före masken."],
+      why:"Blått ljus dämpar aknebakterierna och rött ljus dämpar inflammationen. Krämer i vägen gör ljuset sämre."}
+  );
+  if(acid) list.push({t:"Mjölksyra", w:"The Ordinary, ikväll är det syrakväll", li:["3–4 droppar på fingertopparna.","Panna, kinder och näsrygg.","Inte på hakan, runt munnen eller nära ögonen.","Låt torka en minut. Lite stickningar är normalt."], zones:true, alt:"Hoppa över syran ikväll",
+    why:"Mjölksyran löser upp kittet mellan de döda hudcellerna så att de lossnar jämnt i stället för i flak. Därför behövs mindre gnuggande."});
+  list.push(
+    {t:"Epiduo", w:"Adapalen och bensoylperoxid", li:["Huden ska vara helt torr.","En ärtstor klick räcker.","Tunt lager på hakan, runt munnen och där det finns finnar.","Undvik mungiporna och näsvingarna.","Irriterad hud ikväll? Lägg lite nattkräm först och Epiduo ovanpå."], note:"Epiduo bleker tyg. Vita örngott och handdukar är bäst.", zones:acid,
+      why:"Adapalen gör att hudcellerna förnyas mer normalt och porerna inte täpps igen. Bensoylperoxid dödar aknebakterier."},
+    {t:"Vänta", w:"Låt Epiduo sjunka in", timer:10, wait:"Under tiden: borsta tänderna eller packa väskan till imorgon."},
+    {t:"Nattkräm", w:"Eucerin UreaRepair Night", li:["Tunt lager över hela ansiktet.","Stryk ut i en riktning, låt bli att gnugga.","Klumpar det sig? Ta mindre kräm nästa gång."],
+      why:"Lindrar torrheten från Epiduo och syran och binder fukt under natten."}
   );
   return list;
 }
@@ -327,8 +346,8 @@ function renderHome(){
   $("#orbBig").textContent = done ? "Klart" : "Starta";
   $("#orbSmall").textContent = done ? "Bra jobbat" : (mode === "m" ? "morgonrutinen" : "kvällsrutinen") + `, ${n} steg`;
   const acid = isAcid(today) && !(LOG[today]||{}).acidSkip;
-  $("#tonight").hidden = !(mode === "e" && acid && !done);
-  $("#tonightText").textContent = "Ikväll är det mjölksyrakväll. Panna, kinder och näsrygg.";
+  $("#tonight").hidden = !(mode === "e" && (acid || isSoften(today)) && !done);
+  $("#tonightText").textContent = acid ? "Ikväll är det mjölksyrakväll. Panna, kinder och näsrygg." : "Ikväll mjukar du upp flagorna efter duschen.";
 
   const w = $("#week"); w.innerHTML = "";
   const start = new Date(now); start.setDate(now.getDate() - ((now.getDay()+6)%7));
@@ -361,12 +380,13 @@ function renderStep(){
   let html = "";
   if(s.li) html += "<ul>" + s.li.map(x=>`<li>${x}</li>`).join("") + "</ul>";
   if(s.zones) html += ZONES;
+  if(s.why) html += `<p class="note"><b>Varför?</b> ${s.why}</p>`;
   if(s.note) html += `<p class="note">${s.note}</p>`;
-  if(s.timer) html += `<div class="timer"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-opacity=".15" stroke-width="6"/><circle id="ring" cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="276.5" stroke-dashoffset="0"/></svg><div class="t" id="tleft"></div></div><p class="note" style="text-align:center">Under tiden: borsta tänderna eller packa väskan till imorgon.</p>`;
+  if(s.timer) html += `<div class="timer"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-opacity=".15" stroke-width="6"/><circle id="ring" cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="276.5" stroke-dashoffset="0"/></svg><div class="t" id="tleft"></div></div>` + (s.wait ? `<p class="note" style="text-align:center">${s.wait}</p>` : "");
   $("#stepBody").innerHTML = html;
   $("#stepBack").style.visibility = run.i ? "visible" : "hidden";
   const last = run.i === n-1;
-  $("#stepNext").textContent = s.timer ? "Starta tio minuter" : (last ? "Klar för " + (run.mode==="m" ? "idag" : "ikväll") : "Klar");
+  $("#stepNext").textContent = s.timer ? `Starta ${s.timer} minuter` : (last ? "Klar för " + (run.mode==="m" ? "idag" : "ikväll") : "Klar");
   $("#stepAlt").hidden = !s.alt && !s.timer;
   $("#stepAlt").textContent = s.alt || "Hoppa över väntan";
   if(s.timer){ run.timerEnd = null; tick() }
@@ -379,14 +399,14 @@ function tick(){
   const t = $("#tleft"); if(t) t.textContent = `${m}:${String(sec).padStart(2,"0")}`;
   const r = $("#ring"); if(r) r.style.strokeDashoffset = 276.5 * (1 - left/total);
   if(run.timerEnd){
-    if(left <= 0){ run.timerEnd = null; if(navigator.vibrate) navigator.vibrate(200); next(); return }
+    if(left <= 0){ run.timerEnd = null; if(navigator.vibrate) navigator.vibrate(200); if(run.i < run.steps.length-1){ run.i++; renderStep() } else finish(); return }
     $("#stepNext").textContent = "Väntar…";
     requestAnimationFrame(()=>setTimeout(tick, 250));
   }
 }
 function next(){
   const s = run.steps[run.i];
-  if(s.timer && !run.timerEnd && $("#stepNext").textContent.startsWith("Starta")){ run.timerEnd = Date.now() + s.timer*60e3; tick(); return }
+  if(s.timer && !run.timerEnd){ run.timerEnd = Date.now() + s.timer*60e3; tick(); return }
   if(s.timer && run.timerEnd) return;
   if(run.i < run.steps.length-1){ run.i++; renderStep(); return }
   finish();
@@ -409,7 +429,7 @@ $("#segE").onclick = () => { mode = "e"; renderHome() };
 $("#stepNext").onclick = next;
 $("#stepAlt").onclick = () => {
   const s = run.steps[run.i];
-  if(s.timer){ run.timerEnd = null; run.i++; renderStep(); return }
+  if(s.timer){ run.timerEnd = null; if(run.i < run.steps.length-1){ run.i++; renderStep() } else finish(); return }
   (LOG[run.date] = LOG[run.date] || {}).acidSkip = true; save();
   run.steps.splice(run.i,1); renderStep(); toast("Syran är överhoppad ikväll");
 };
