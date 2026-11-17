@@ -39,16 +39,20 @@ export function stockholmNow() {
   return { date: `${parts.year}-${parts.month}-${parts.day}`, minutes: Number(parts.hour) * 60 + Number(parts.minute) };
 }
 
+export const dowOf = date => { const [y, m, d] = date.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d)).getUTCDay(); };
+export const isShower = date => [0, 1, 3, 5].includes(dowOf(date));
+export const isSoften = (date, acidStart) => { const d = dowOf(date); return d === 1 || (d === 5 && !isAcid(date, acidStart)); };
+
 export function message(slot, date, acidStart) {
   if (slot === "m") return lovName(date)
     ? { title: "God förmiddag", body: "Sovmorgon idag. Ett tunt lager dagkräm när du är uppe.", url: "/?start=m", tag: "morgon" }
     : { title: "God morgon", body: "Ett tunt lager dagkräm. Tryck när du är redo.", url: "/?start=m", tag: "morgon" };
-  const [y, mo, d] = date.split("-").map(Number);
-  const dow = new Date(Date.UTC(y, mo - 1, d)).getUTCDay();
-  if (isAcid(date, acidStart)) return { title: "Dags för kvällsrutinen", body: "Ikväll är det mjölksyrakväll. Tryck när du är redo.", url: "/?start=e", tag: "kvall" };
-  return (dow === 2 || dow === 6)
-    ? { title: "Dags för kvällsrutinen", body: "Ikväll mjukar du upp flagorna efter duschen. Tryck när du är redo.", url: "/?start=e", tag: "kvall" }
-    : { title: "Dags för kvällsrutinen", body: "Tvätta, masken, Epiduo, nattkräm. Tryck när du är redo.", url: "/?start=e", tag: "kvall" };
+  if (slot === "d") return isSoften(date, acidStart)
+    ? { title: "Duschdags", body: "Idag mjukar du upp flagorna direkt efter duschen. Tryck när du är redo.", url: "/?start=d", tag: "dusch" }
+    : { title: "Duschdags", body: "Tvätta ansiktet i duschen och smörj ett tunt lager efteråt.", url: "/?start=d", tag: "dusch" };
+  return isAcid(date, acidStart)
+    ? { title: "Dags för kvällsrutinen", body: "Ikväll är det mjölksyrakväll. Tryck när du är redo.", url: "/?start=e", tag: "kvall" }
+    : { title: "Dags för kvällsrutinen", body: "Masken, Epiduo och nattkräm. Tryck när du är redo.", url: "/?start=e", tag: "kvall" };
 }
 
 /* Helg eller lovdag enligt Stockholms stads lovschema */

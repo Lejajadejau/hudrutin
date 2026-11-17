@@ -1,4 +1,4 @@
-import { store, push, stockholmNow, message, lovName } from "../lib/shared.mjs";
+import { store, push, stockholmNow, message, lovName, isShower } from "../lib/shared.mjs";
 const toMin = t => { const [h, m] = (t || "0:0").split(":").map(Number); return h * 60 + m; };
 export default async () => {
   const s = store(), now = stockholmNow();
@@ -7,9 +7,10 @@ export default async () => {
     const rec = await s.get(key, { type: "json" });
     if (!rec) continue;
     let changed = false;
-    for (const slot of ["m", "e"]) {
+    for (const slot of ["m", "d", "e"]) {
+      if (slot === "d" && !isShower(now.date)) continue;
       const morning = lovName(now.date) ? (rec.settings.morningLate || "11:00") : rec.settings.morning;
-      const t = toMin(slot === "m" ? morning : rec.settings.evening);
+      const t = toMin(slot === "m" ? morning : slot === "d" ? (rec.settings.shower || "17:00") : rec.settings.evening);
       if (now.minutes >= t && now.minutes < t + 60 && rec.last[slot] !== now.date) {
         try {
           await push(rec.sub, message(slot, now.date, rec.settings.acidStart));
